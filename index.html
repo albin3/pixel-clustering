@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Photo generator</title>
+  </head>
+  <body>
+    <form>
+      <label for="file">换文件</label>
+      <input id="file" type="file" name="file">
+      <label for="algorithm">分类算法</label>
+      <select id="algorithm" name="algorithm">
+        <option value ="k-means" selected>k-means</option>
+        <option value ="saab">EM</option>
+      </select>
+      <label for="n">分成几类</label>
+      <input id="n" type="text" name="n" value="3">
+      <input id="button" type="button" name="button" value="开始计算">
+    </form>
+    <canvas id="canvasOrigin" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
+    <canvas id="canvas" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
+    <img id="img" ></img>
+    <script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="./js/index.js"></script>
+  </body>
+</html>
