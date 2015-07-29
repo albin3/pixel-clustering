@@ -43,13 +43,14 @@ file.change(function (event) {
 });
 
 canvas.on('k-means', function(e, data) {
-  //原始图像
+
+  //绘制原始图像canvas
   canvasOrigin.get(0).width = data.imgW;
   canvasOrigin.get(0).height = data.imgH;
   canvasOrigin.get(0).getContext('2d')
               .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
 
-  //灰度化图像
+  //绘制灰度化图像canvas
   var imagedata = canvasOrigin.get(0).getContext('2d')
                   .getImageData(0,0,data.imgW,data.imgH);
   for (var i=0; i<imagedata.data.length; i+=4) {
@@ -60,7 +61,8 @@ canvas.on('k-means', function(e, data) {
   canvasGray.get(0).height = data.imgH;
   canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
 
-  //k-means初始化中心 [根据点的分布优化]
+  //k-means初始化中心步骤
+  //[根据点的分布优化]
   canvas.get(0).width = data.imgW;
   canvas.get(0).height = data.imgH;
   context.putImageData(imagedata, 0, 0);
@@ -90,14 +92,15 @@ canvas.on('k-means', function(e, data) {
   }
 
 
-  //迭代聚类图像
+  //使用k-means迭代聚类图像步骤
   var threshold = 1;
   kmeansIterator(canvasGray.get(0).getContext('2d'), context, centerList, threshold);
 });
 
+//k-means迭代函数
 function kmeansIterator(grayContext, context, centerList, threshold) {
 
-  //聚类
+  //1.聚类
   var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
   var NSum = [];
   var NCount = [];
@@ -128,7 +131,8 @@ function kmeansIterator(grayContext, context, centerList, threshold) {
   }
   context.putImageData(pixelData, 0, 0);
 
-  //中心偏移  根据本次聚类结果，计算每个类的新的中心
+  //2.中心偏移
+  //根据本次聚类结果，计算每个类的新的中心
   var newList = [];
   for (var i=0; i<centerList.length; i++) {
     newList.push(
@@ -136,7 +140,8 @@ function kmeansIterator(grayContext, context, centerList, threshold) {
     );
   }
 
-  //递归迭代  计算新的中心跟老的中心的偏移量，跟阈值比较
+  //3.递归迭代
+  //计算新的中心跟老的中心的偏移量，跟阈值比较
   var shift = 0;
   for (var i=0; i<centerList.length; i++) {
     shift += Math.abs(centerList[i]-newList[i]);
@@ -149,23 +154,24 @@ function kmeansIterator(grayContext, context, centerList, threshold) {
   }
 }
 
-$().ready(function() {
-  setTimeout(function() {
-    var N = parseInt(n.val());
-    canvasOrigin.get(0).width = 400;
-    canvasOrigin.get(0).height = 300;
-    canvasGray.get(0).width = 400;
-    canvasGray.get(0).height = 300;
-    canvas.get(0).width = 400;
-    canvas.get(0).height = 300;
-    img.get(0).crossOrigin = "Anonymous";
-    img.crossOrigin = "Anonymous";
-    img.show();
-    img.get(0).width = img.width() > 400 ? 400 : img.width();
-    img.get(0).height = img.height() > 300 ? 300 : img.height();
-    img.hide();
-    imgW = img.width();
-    imgH = img.height();
-    canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-  }, 500);
+//萌妹纸图
+img.load(function(e) {
+
+  var N = parseInt(n.val());
+  canvasOrigin.get(0).width = 400;
+  canvasOrigin.get(0).height = 300;
+  canvasGray.get(0).width = 400;
+  canvasGray.get(0).height = 300;
+  canvas.get(0).width = 400;
+  canvas.get(0).height = 300;
+  img.show();
+  img.get(0).width = img.width() > 400 ? 400 : img.width();
+  img.get(0).height = img.height() > 300 ? 300 : img.height();
+  img.hide();
+  imgW = img.width();
+  imgH = img.height();
+  canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
+
+  img.unbind();
 });
+img.get(0).src = './img/demo.jpg';

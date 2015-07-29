@@ -11,7 +11,7 @@
       <label for="algorithm">聚类算法</label>
       <select id="algorithm" name="algorithm">
         <option value ="k-means" selected>k-means</option>
-        <option value ="saab">EM</option>
+        <option value ="em">EM(TODO)</option>
       </select>
       <label for="n">将像素值聚成几类</label>
       <input id="n" type="text" name="n" value="3">
@@ -23,7 +23,7 @@
     <canvas id="canvasGray" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
     <label for="canvas">聚类后</label>
     <canvas id="canvas" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
-    <img id="img" src="./img/demo.jpg" style="display: none;"></img>
+    <img id="img" style="display: none;"></img>
     <script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
     <script src="./js/index.js"></script>
   </body>
