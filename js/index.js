@@ -143,10 +143,8 @@ function kmeansIterator(grayContext, context, centerList, threshold) {
   }
 
   if (shift >= threshold) {
-    console.log(newList);
     kmeansIterator(grayContext, context, newList, threshold);
   } else {
-    console.log(newList);
     return;
   }
 }
@@ -169,5 +167,5 @@ $().ready(function() {
     imgW = img.width();
     imgH = img.height();
     canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-  }, 50);
+  }, 500);
 });
