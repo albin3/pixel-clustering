@@ -7,6 +7,7 @@ var algorithm = $('#algorithm');
 var n = $('#n');//分成几类
 
 var canvasOrigin = $('#canvasOrigin');
+var canvasGray = $('#canvasGray');
 var canvas = $('#canvas');
 var context = canvas.get(0).getContext("2d");
 var img = $('#img');
@@ -16,7 +17,15 @@ var imgW = 0;
 button.click(function(e) {
   var algo = algorithm.val();
   var N = parseInt(n.val());
+  if (algo === 'k-means') {
+    canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
+  } else {
+    canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
+    //canvas.trigger('EM', {imgH: imgH, imgW: imgW, N: N});
+  }
+});
 
+file.change(function (event) {
   var reader = new FileReader();
   reader.onload = function(e) {
     img.attr('src', e.target.result);
@@ -28,37 +37,137 @@ button.click(function(e) {
       img.hide();
       imgW = img.width();
       imgH = img.height();
-      console.log(imgW);
-      console.log(imgH);
-      //img.attr('style', 'display: none;');
-      if (algo === 'k-means') {
-        canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-      } else {
-        canvas.trigger('EM', {imgH: imgH, imgW: imgW, N: N});
-      }
     }, 50);
   };
-  reader.readAsDataURL(blob);
-});
-
-file.change(function (event) {
-  blob = event.target.files[0];
+  reader.readAsDataURL(event.target.files[0]);
 });
 
 canvas.on('k-means', function(e, data) {
-  canvas.get(0).width = data.imgW;
-  canvas.get(0).height = data.imgH;
+  //原始图像
   canvasOrigin.get(0).width = data.imgW;
   canvasOrigin.get(0).height = data.imgH;
   canvasOrigin.get(0).getContext('2d')
               .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
+
   //灰度化图像
   var imagedata = canvasOrigin.get(0).getContext('2d')
                   .getImageData(0,0,data.imgW,data.imgH);
   for (var i=0; i<imagedata.data.length; i+=4) {
-    var average = (imagedata.data[i+0]+imagedata.data[i+1]+imagedata.data[i+2])/3;
+    var average = parseInt((imagedata.data[i+0]+imagedata.data[i+1]+imagedata.data[i+2])/3);
     imagedata.data[i+0] = imagedata.data[i+1] = imagedata.data[i+2] = average;
   }
+  canvasGray.get(0).width = data.imgW;
+  canvasGray.get(0).height = data.imgH;
+  canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
+
+  //k-means初始化中心 [根据点的分布优化]
+  canvas.get(0).width = data.imgW;
+  canvas.get(0).height = data.imgH;
   context.putImageData(imagedata, 0, 0);
-  console.log(imagedata);
+
+  var nPoints = data.imgW * data.imgH;
+  var graySet = [];
+  for (var i=0; i<256; i++) graySet.push(0);
+  for (var i=0; i<imagedata.data.length; i+=4) {
+    graySet[imagedata.data[i]] += 1;
+  }
+
+  var idx = 0;
+  var curPoints = 0;
+  var pointsNums = [];
+  for (var i=0; i<data.N; i++) {    //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
+    pointsNums.push(                //以三类为例分别取 0.5，1.5，2.5作为初始化三个中心点
+      (i+0.5)*nPoints/data.N
+    );
+  }
+  var centerList = [];
+  for (var i=0; i<graySet.length; i++) {
+    curPoints += graySet[i];
+    while (idx < data.N && curPoints >= pointsNums[idx]) {
+      centerList.push(i);
+      idx++;
+    }
+  }
+
+
+  //迭代聚类图像
+  var threshold = 1;
+  kmeansIterator(canvasGray.get(0).getContext('2d'), context, centerList, threshold);
+});
+
+function kmeansIterator(grayContext, context, centerList, threshold) {
+
+  //聚类
+  var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
+  var NSum = [];
+  var NCount = [];
+  for (var i=0; i<centerList.length; i++) {
+    NSum.push(0);
+    NCount.push(0);
+  }
+
+  for (var i=0; i<pixelData.data.length; i+=4) {
+
+    var pixel = pixelData.data[i];
+    var n = 0;
+    var min = Math.abs(pixel-centerList[0]);
+
+    for (var j=1; j<centerList.length; j++) {
+      var current = Math.abs(pixel-centerList[j]);
+      if (current < min) {
+        n = j;
+        min = current;
+      }
+    }
+
+    NSum[n] += pixelData.data[i+0];
+    NCount[n] += 1;
+    pixelData.data[i+0] = centerList[n];
+    pixelData.data[i+1] = centerList[n];
+    pixelData.data[i+2] = centerList[n];
+  }
+  context.putImageData(pixelData, 0, 0);
+
+  //中心偏移  根据本次聚类结果，计算每个类的新的中心
+  var newList = [];
+  for (var i=0; i<centerList.length; i++) {
+    newList.push(
+      NSum[i]/NCount[i]
+    );
+  }
+
+  //递归迭代  计算新的中心跟老的中心的偏移量，跟阈值比较
+  var shift = 0;
+  for (var i=0; i<centerList.length; i++) {
+    shift += Math.abs(centerList[i]-newList[i]);
+  }
+
+  if (shift >= threshold) {
+    console.log(newList);
+    kmeansIterator(grayContext, context, newList, threshold);
+  } else {
+    console.log(newList);
+    return;
+  }
+}
+
+$().ready(function() {
+  setTimeout(function() {
+    var N = parseInt(n.val());
+    canvasOrigin.get(0).width = 400;
+    canvasOrigin.get(0).height = 300;
+    canvasGray.get(0).width = 400;
+    canvasGray.get(0).height = 300;
+    canvas.get(0).width = 400;
+    canvas.get(0).height = 300;
+    img.get(0).crossOrigin = "Anonymous";
+    img.crossOrigin = "Anonymous";
+    img.show();
+    img.get(0).width = img.width() > 400 ? 400 : img.width();
+    img.get(0).height = img.height() > 300 ? 300 : img.height();
+    img.hide();
+    imgW = img.width();
+    imgH = img.height();
+    canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
+  }, 50);
 });

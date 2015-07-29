@@ -6,20 +6,24 @@
   </head>
   <body>
     <form>
-      <label for="file">换文件</label>
-      <input id="file" type="file" name="file">
-      <label for="algorithm">分类算法</label>
+      <label for="file">换图片</label>
+      <input id="file" type="file" name="file" value="demo.jpg">
+      <label for="algorithm">聚类算法</label>
       <select id="algorithm" name="algorithm">
         <option value ="k-means" selected>k-means</option>
         <option value ="saab">EM</option>
       </select>
-      <label for="n">分成几类</label>
+      <label for="n">将像素值聚成几类</label>
       <input id="n" type="text" name="n" value="3">
-      <input id="button" type="button" name="button" value="开始计算">
+      <input id="button" type="button" name="button" value="开始聚类">
     </form>
+    <label for="canvasOrigin">原图</label>
     <canvas id="canvasOrigin" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
+    <label for="canvasGray">灰度图</label>
+    <canvas id="canvasGray" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
+    <label for="canvas">聚类后</label>
     <canvas id="canvas" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
-    <img id="img" ></img>
+    <img id="img" src="./img/demo.jpg" style="display: none;"></img>
     <script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
     <script src="./js/index.js"></script>
   </body>
