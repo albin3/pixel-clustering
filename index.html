@@ -2,29 +2,76 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon">
     <title>Photo generator</title>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css"></link>
   </head>
   <body>
-    <form>
-      <label for="file">换图片</label>
-      <input id="file" type="file" name="file" value="demo.jpg">
-      <label for="algorithm">聚类算法</label>
-      <select id="algorithm" name="algorithm">
-        <option value ="k-means" selected>k-means</option>
-        <option value ="em">EM(TODO)</option>
-      </select>
-      <label for="n">将像素值聚成几类</label>
-      <input id="n" type="text" name="n" value="3">
-      <input id="button" type="button" name="button" value="开始聚类">
-    </form>
-    <label for="canvasOrigin">原图</label>
-    <canvas id="canvasOrigin" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
-    <label for="canvasGray">灰度图</label>
-    <canvas id="canvasGray" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
-    <label for="canvas">聚类后</label>
-    <canvas id="canvas" width="600" height="800"><p>浏览器不支持canvas</p></canvas>
+    <div class="row">
+      <form class="navbar-left form-horizontal img-thumbnail col-md-offset-4" role="form">
+        <div class="form-group">
+          <label for="file" class="col-sm-3 control-label">换文件</label>
+          <div class="col-sm-8">
+            <input id="file" type="file" class="form-control" name="file" placeholder="demo.jpg">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="algorithm" class="col-sm-3 control-label">聚类算法</label>
+          <div class="col-sm-8">
+            <select class="selectpicker form-control">
+              <option selected>k-means</option>
+              <option disabled>EM(TODO)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="n" class="col-sm-3 control-label">聚类数目</label>
+          <div class="col-sm-8">
+            <input id="n" type="text" class="form-control" name="n" value="3" placeholder="默认分为3类">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-sm-3 control-label"><a href="https://github.com/albin3/black-and-white-photo" target="_blank">Github</a></label>
+          <div class="col-sm-8">
+            <button id="button" type="button" class="btn btn-default">重新聚类</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <p>==================================================召唤萌妹纸的分割线========================================================</p>
+    <div class="row">
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <canvas id="canvasOrigin" class="img-responsive"><p>浏览器不支持canvas</p></canvas>
+          <div class="caption">
+            <h3>原始图像</h3>
+            <p>canvas自动向下采样原始图像</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <canvas id="canvasGray" class="img-responsive"><p>浏览器不支持canvas</p></canvas>
+          <div class="caption">
+            <h3>灰度图像</h3>
+            <p>计算生成黑白图像</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <div class="thumbnail">
+          <canvas id="canvas" class="img-responsive"><p>浏览器不支持canvas</p></canvas>
+          <div class="caption">
+            <h3>聚类后</h3>
+            <p>迭代生成像素值只有N类的黑白图像</p>
+          </div>
+        </div>
+      </div>
+    </div>
     <img id="img" style="display: none;"></img>
     <script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+    <script src="//cdn.bootcss.com/bootstrap-hover-dropdown/2.0.10/bootstrap-hover-dropdown.min.js"></script>
     <script src="./js/index.js"></script>
   </body>
 </html>
