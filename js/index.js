@@ -174,5 +174,5 @@
 
     //img.unbind();
   });
-  img.get(0).src = './img/demo.jpg';
+  img.get(0).src = './img/demo400x250.jpg';
 })();
