@@ -156,14 +156,7 @@
 
   //萌妹纸图
   img.load(function(e) {
-
     var N = parseInt(n.val());
-    //canvasOrigin.get(0).width = 400;
-    //canvasOrigin.get(0).height = 300;
-    //canvasGray.get(0).width = 400;
-    //canvasGray.get(0).height = 300;
-    //canvas.get(0).width = 400;
-    //canvas.get(0).height = 300;
     img.show();
     img.get(0).width = img.width() > 400 ? 400 : img.width();
     img.get(0).height = img.height() > 300 ? 300 : img.height();
@@ -171,8 +164,7 @@
     imgW = img.width();
     imgH = img.height();
     canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-
-    //img.unbind();
   });
   img.get(0).src = './img/demo400x250.jpg';
+
 })();
