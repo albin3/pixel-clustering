@@ -1,5 +1,4 @@
 (function () {
-  'use strict'
 
   var file= $('#file');
   var blob = null;
@@ -44,14 +43,13 @@
   });
 
   canvas.on('k-means', function(e, data) {
-
-    //绘制原始图像canvas
+    //1. 绘制原始图像canvas
     canvasOrigin.get(0).width = data.imgW;
     canvasOrigin.get(0).height = data.imgH;
     canvasOrigin.get(0).getContext('2d')
     .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
 
-    //绘制灰度化图像canvas
+    //2. 绘制灰度化图像canvas
     var imagedata = canvasOrigin.get(0).getContext('2d')
     .getImageData(0,0,data.imgW,data.imgH);
     for (var i=0; i<imagedata.data.length; i+=4) {
@@ -62,8 +60,7 @@
     canvasGray.get(0).height = data.imgH;
     canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
 
-    //k-means初始化中心步骤
-    //[根据点的分布优化]
+    //3. k-means初始化中心步骤     [已根据点的分布优化]
     canvas.get(0).width = data.imgW;
     canvas.get(0).height = data.imgH;
     context.putImageData(imagedata, 0, 0);
@@ -78,7 +75,7 @@
     var idx = 0;
     var curPoints = 0;
     var pointsNums = [];
-    for (i=0; i<data.N; i++) {    //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
+    for (i=0; i<data.N; i++) {        //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
       pointsNums.push(                //以三类为例分别取 0.5，1.5，2.5作为初始化三个中心点
         (i+0.5)*nPoints/data.N
       );
@@ -92,7 +89,7 @@
       }
     }
 
-    //使用k-means迭代聚类图像步骤
+    //4. 使用k-means迭代聚类图像步骤
     var threshold = 1;
     kmeansIterator(canvasGray.get(0).getContext('2d'), context, centerList, threshold);
   });
@@ -100,7 +97,7 @@
   //k-means迭代函数
   function kmeansIterator(grayContext, context, centerList, threshold) {
 
-    //1.聚类
+    //1. 聚类
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
     var NSum = [];
     var NCount = [];
@@ -131,7 +128,7 @@
     }
     context.putImageData(pixelData, 0, 0);
 
-    //2.中心偏移
+    //2. 中心偏移
     //根据本次聚类结果，计算每个类的新的中心
     var newList = [];
     for (i=0; i<centerList.length; i++) {
@@ -140,7 +137,7 @@
       );
     }
 
-    //3.递归迭代
+    //3. 递归迭代
     //计算新的中心跟老的中心的偏移量，跟阈值比较
     var shift = 0;
     for (i=0; i<centerList.length; i++) {
@@ -152,6 +149,11 @@
     } else {
       return;
     }
+  }
+
+  //EM迭代函数
+  function emIterator(grayContext, context, centerList, threshold) {
+    //TODO: EM迭代，首先找到一个高斯函数库
   }
 
   //萌妹纸图
