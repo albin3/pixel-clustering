@@ -20,8 +20,7 @@
     if (algo === 'k-means') {
       canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
     } else {
-      canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-      //canvas.trigger('EM', {imgH: imgH, imgW: imgW, N: N});
+      canvas.trigger('EM', {imgH: imgH, imgW: imgW, N: N});
     }
   });
 
@@ -151,9 +150,37 @@
     }
   }
 
+  canvas.on('EM', function(e, data) {
+    //1. 绘制原始图像canvas
+    canvasOrigin.get(0).width = data.imgW;
+    canvasOrigin.get(0).height = data.imgH;
+    canvasOrigin.get(0).getContext('2d')
+    .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
+
+    //2. 绘制灰度化图像canvas
+    var imagedata = canvasOrigin.get(0).getContext('2d')
+    .getImageData(0,0,data.imgW,data.imgH);
+    for (var i=0; i<imagedata.data.length; i+=4) {
+      var average = parseInt((imagedata.data[i+0]+imagedata.data[i+1]+imagedata.data[i+2])/3);
+      imagedata.data[i+0] = imagedata.data[i+1] = imagedata.data[i+2] = average;
+    }
+    canvasGray.get(0).width = data.imgW;
+    canvasGray.get(0).height = data.imgH;
+    canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
+
+    //初始化EM并调用迭代
+  });
+
   //EM迭代函数
   function emIterator(grayContext, context, centerList, threshold) {
-    //TODO: EM迭代，首先找到一个高斯函数库
+
+    //EM具体实现比较复杂，考虑用simple-EM，中心偏移和方差不实时计算，而是按比例增大或缩小
+    // E-step
+    var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
+
+    // M-step
+
+    // 阈值决定是否继续迭代
   }
 
   //萌妹纸图
