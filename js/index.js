@@ -95,7 +95,6 @@
 
   //k-means迭代函数
   function kmeansIterator(grayContext, context, centerList, threshold) {
-
     //1. 聚类
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
     var NSum = [];
@@ -319,8 +318,6 @@
       likehood = new_likehood;  //global
       emIterator(graySet, grayContext, context, clusters, threshold);
     } else {
-      console.log('old', likehood);
-      console.log('new', new_likehood);
       if (Math.abs(likehood-new_likehood) < threshold) {
         return;
       } else {
