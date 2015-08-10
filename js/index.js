@@ -158,7 +158,7 @@
 
     //2. 绘制灰度化图像canvas
     var imagedata = canvasOrigin.get(0).getContext('2d')
-    .getImageData(0,0,data.imgW,data.imgH);
+                                       .getImageData(0,0,data.imgW,data.imgH);
     for (var i=0; i<imagedata.data.length; i+=4) {
       var average = parseInt((imagedata.data[i+0]+imagedata.data[i+1]+imagedata.data[i+2])/3);
       imagedata.data[i+0] = imagedata.data[i+1] = imagedata.data[i+2] = average;
@@ -220,23 +220,31 @@
       });
     }
 
-    //初始化EM并调用迭代
+    //初始化EM并调用迭代，直接在直方图上进行迭代0~255，而不是对整个图片像素作为对象进行迭代 graySet
     var threshold = 1;
-    emIterator(canvasGray.get(0).getContext('2d'), context, clusters, threshold);
+    emIterator(graySet, canvasGray.get(0).getContext('2d'), context, clusters, threshold);
   });
 
   //EM迭代函数
-  function emIterator(grayContext, context, clusters, threshold) {
-
-    // E-step       [聚类]
-    var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
-    var i=0;
-    for (i=0; i<pixelData.data.length; i+=4) {
+  function emIterator(graySet, grayContext, context, clusters, threshold) {
+    //E-step       [聚类]
+    var new_means = [];
+    var p_k = [];
+    var i = 0, j = 0;
+    var mid = 0;
+    for (i=0; i<graySet.length; i++) {
+      mid = 0;
+      for (j=0; j<clusters.length; j++) {
+        mid += clusters[j].feature.pdf(i);
+      }
+      for (j=0; j<clusters.length; j++) {
+        p_k[i] = {};
+        p_k[i][j] = clusters[j].p*clusters[j].feature(i)/mid;
+      }
     }
+    //M-step       [重新计算样本中心，及方差]
 
-    // M-step       [重新计算样本中心]
-
-    // 阈值决定是否继续迭代
+    //阈值决定是否继续迭代
   }
 
   //萌妹纸图
