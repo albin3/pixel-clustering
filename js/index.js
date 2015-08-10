@@ -106,7 +106,6 @@
     }
 
     for (i=0; i<pixelData.data.length; i+=4) {
-
       var pixel = pixelData.data[i];
       var n = 0;
       var min = Math.abs(pixel-centerList[0]);
@@ -168,17 +167,74 @@
     canvasGray.get(0).height = data.imgH;
     canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
 
+    var nPoints = data.imgW * data.imgH;
+    var graySet = [];
+    for (i=0; i<256; i++) graySet.push(0);
+    for (i=0; i<imagedata.data.length; i+=4) {
+      graySet[imagedata.data[i]] += 1;
+    }
+
+    var idx = 0;
+    var curPoints = 0;
+    var pointsNums = [];
+    for (i=0; i<data.N; i++) {        //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
+      pointsNums.push(                //以三类为例分别取 0.5，1.5，2.5作为初始化三个中心点
+        (i+0.5)*nPoints/data.N
+      );
+    }
+    //多个正态分布的中心
+    var means = [];
+    for (i=0; i<graySet.length; i++) {
+      curPoints += graySet[i];
+      while (idx < data.N && curPoints >= pointsNums[idx]) {
+        means.push(i);
+        idx++;
+      }
+    }
+    //多个正态分布的方差
+    var variances = [];
+    curPoints = 0;
+    idx = 0;
+    var sum = 0;
+    for (i=0; i<graySet.length; i++) {
+      curPoints += graySet[i];
+      sum += (graySet[i]-means[idx])*(graySet[i]-means[idx]);
+      while (idx < data.N && curPoints >= pointsNums[idx]) {
+        variances.push(sum);
+        sum = 0;
+        idx++;
+      }
+    }
+    //多个正太分布的权重
+    var p = [];
+    for (i=0; i<data.N; i++) {
+      p.push(1/data.N);
+    }
+
+    //构造分布
+    var clusters = [];
+    for (i=0; i<data.N; i++) {
+      clusters.push({
+        feature: gaussian(means[i], variances[i]),
+        p: p[i]
+      });
+    }
+
     //初始化EM并调用迭代
+    var threshold = 1;
+    emIterator(canvasGray.get(0).getContext('2d'), context, clusters, threshold);
   });
 
   //EM迭代函数
-  function emIterator(grayContext, context, centerList, threshold) {
+  function emIterator(grayContext, context, clusters, threshold) {
 
-    //EM具体实现比较复杂，考虑用simple-EM，中心偏移和方差不实时计算，而是按比例增大或缩小
-    // E-step
+    // E-step       [聚类]
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
+    var i=0;
+    for (i=0; i<pixelData.data.length; i+=4) {
+    }
 
-    // M-step
+    // M-step       [重新计算样本中心]
 
     // 阈值决定是否继续迭代
   }
