@@ -157,7 +157,7 @@
 
     //2. 绘制灰度化图像canvas
     var imagedata = canvasOrigin.get(0).getContext('2d')
-                                       .getImageData(0,0,data.imgW,data.imgH);
+    .getImageData(0,0,data.imgW,data.imgH);
     for (var i=0; i<imagedata.data.length; i+=4) {
       var average = parseInt((imagedata.data[i+0]+imagedata.data[i+1]+imagedata.data[i+2])/3);
       imagedata.data[i+0] = imagedata.data[i+1] = imagedata.data[i+2] = average;
@@ -254,8 +254,8 @@
         p_k[i][j] = clusters[j].p*clusters[j].feature.pdf(i)/mid;
       }
     }
-    //M-step       [重新计算样本中心，及方差]
 
+    //M-step       [重新计算样本中心，及方差]
     //1 更新N_k  每个样本集的样本个数
     var N_k = [];
     var N = 0;
@@ -270,12 +270,12 @@
     //2 更新u_k  每个样本集的均值
     var u_k = [];
     for (i=0; i<clusters.length; i++) {
-			mid = 0;
+      mid = 0;
       u_k[i] = 0;
-			for(j=0; j<graySet.length; j++) {
+      for(j=0; j<graySet.length; j++) {
         mid += graySet[j]*p_k[j][i]*j;
-			}
-			u_k[i] = mid/N_k[i];
+      }
+      u_k[i] = mid/N_k[i];
     }
 
     //3 更新v_k  每个样本集的方差
@@ -284,16 +284,16 @@
       mid = 0;
       v_k[i] = 0;
       for (j=0; j<graySet.length; j++) {
-				mid += graySet[j]*p_k[j][i]*(u_k[i]-j)*(u_k[i]-j);
+        mid += graySet[j]*p_k[j][i]*(u_k[i]-j)*(u_k[i]-j);
       }
-			v_k[i] = mid/N_k[i];
+      v_k[i] = mid/N_k[i];
     }
 
     //4 更新pi_k  每个样本集的权重
-		for(i=0; i<clusters.length; i++) {
-			clusters[i].p = N_k[i]/N;
+    for(i=0; i<clusters.length; i++) {
+      clusters[i].p = N_k[i]/N;
       clusters[i].feature = gaussian(u_k[i], v_k[i]);
-		}
+    }
 
     //更新context
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
@@ -307,13 +307,13 @@
 
     //阈值决定是否继续迭代
     var new_likehood = 0;
-		for (j=0; j<graySet.length; j++) {
-			mid = 0;
-			for (i=0; i<clusters.length; i++) {
-				mid += clusters[i].p*clusters[i].feature.pdf(j);
-			}
-			new_likehood += graySet[i]*Math.log10(mid);
-		}
+    for (j=0; j<graySet.length; j++) {
+      mid = 0;
+      for (i=0; i<clusters.length; i++) {
+        mid += clusters[i].p*clusters[i].feature.pdf(j);
+      }
+      new_likehood += graySet[i]*Math.log10(mid);
+    }
     if (likehood === undefined) {
       likehood = new_likehood;  //global
       emIterator(graySet, grayContext, context, clusters, threshold);
