@@ -2,7 +2,6 @@
 
   var file= $('#file');
   var blob = null;
-  var button = $('#button');
   var algorithm = $('#algorithm');
   var n = $('#n');//分成几类
 
@@ -13,16 +12,6 @@
   var img = $('#img');
   var imgH = 0;
   var imgW = 0;
-
-  button.click(function(e) {
-    var algo = algorithm.val();
-    var N = parseInt(n.val());
-    if (algo === 'k-means') {
-      canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
-    } else {
-      canvas.trigger('EM', {imgH: imgH, imgW: imgW, N: N});
-    }
-  });
 
   file.change(function (event) {
     var reader = new FileReader();
@@ -327,17 +316,34 @@
     }
   }
 
-  //萌妹纸图
-  img.load(function(e) {
+  //聚类触发函数
+  function beginCluster() {
+    var algo = algorithm.val();
+    if (algo !== 'k-means' && algo !== 'EM') algo = 'k-means';
     var N = parseInt(n.val());
+    if (isNaN(N)) N = 3;
     img.show();
     img.get(0).width = img.width() > 400 ? 400 : img.width();
     img.get(0).height = img.height() > 300 ? 300 : img.height();
     img.hide();
     imgW = img.width();
     imgH = img.height();
-    canvas.trigger('k-means', {imgH: imgH, imgW: imgW, N: N});
+    canvas.trigger(algo, {imgH: imgH, imgW: imgW, N: N});
+  }
+
+  //选择聚类算法时触发聚类
+  algorithm.change(function(e) {
+    beginCluster();
+  });
+
+  //改变聚类类别时触发聚类
+  n.change(function(e) {
+    beginCluster();
+  });
+
+  //萌妹子
+  img.load(function(e) {
+    beginCluster();
   });
   img.get(0).src = './img/demo400x250.jpg';
-
 })();
