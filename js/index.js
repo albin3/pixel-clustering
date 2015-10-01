@@ -1,5 +1,4 @@
 (function () {
-
   var file= $('#file');
   var blob = null;
   var algorithm = $('#algorithm');
@@ -341,7 +340,7 @@
     beginCluster();
   });
 
-  //萌妹子
+  //加载萌妹子
   img.load(function(e) {
     beginCluster();
   });
