@@ -2,9 +2,11 @@
   var file= $('#file');
   var blob = null;
   var algorithm = $('#algorithm');
-  var n = $('#n');//分成几类
-
+  // clustering number
+  var n = $('#n');
+  // original picture
   var canvasOrigin = $('#canvasOrigin');
+  // gray scale picture
   var canvasGray = $('#canvasGray');
   var canvas = $('#canvas');
   var context = canvas.get(0).getContext("2d");
@@ -16,7 +18,7 @@
     var reader = new FileReader();
     reader.onload = function(e) {
       img.attr('src', e.target.result);
-      //延时是为了让src生效(在firefox里面上面这句居然是异步的);
+      // firefox compatibility
       setTimeout(function () {
         img.show();
         img.get(0).width = img.width() > 400 ? 400 : img.width();
@@ -30,13 +32,13 @@
   });
 
   canvas.on('k-means', function(e, data) {
-    //1. 绘制原始图像canvas
+    // 1. draw original picture on canvas
     canvasOrigin.get(0).width = data.imgW;
     canvasOrigin.get(0).height = data.imgH;
     canvasOrigin.get(0).getContext('2d')
     .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
 
-    //2. 绘制灰度化图像canvas
+    // 2. draw gray scale picture on canvas
     var imagedata = canvasOrigin.get(0).getContext('2d')
     .getImageData(0,0,data.imgW,data.imgH);
     for (var i=0; i<imagedata.data.length; i+=4) {
@@ -47,7 +49,7 @@
     canvasGray.get(0).height = data.imgH;
     canvasGray.get(0).getContext('2d').putImageData(imagedata, 0, 0);
 
-    //3. k-means初始化中心步骤     [已根据点的分布优化]
+    // 3. initialize k-means centers.
     canvas.get(0).width = data.imgW;
     canvas.get(0).height = data.imgH;
     context.putImageData(imagedata, 0, 0);
@@ -62,8 +64,9 @@
     var idx = 0;
     var curPoints = 0;
     var pointsNums = [];
-    for (i=0; i<data.N; i++) {        //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
-      pointsNums.push(                //以三类为例分别取 0.5，1.5，2.5作为初始化三个中心点
+    for (i=0; i<data.N; i++) {
+      // k-means centers are 0.5/N，1.5/N ... (N-0.5)/N.
+      pointsNums.push(
         (i+0.5)*nPoints/data.N
       );
     }
@@ -76,14 +79,14 @@
       }
     }
 
-    //4. 使用k-means迭代聚类图像步骤
+    // 4. set break threshold and iterate.
     var threshold = 1;
     kmeansIterator(canvasGray.get(0).getContext('2d'), context, centerList, threshold);
   });
 
-  //k-means迭代函数
+  // k-means iterate function
   function kmeansIterator(grayContext, context, centerList, threshold) {
-    //1. 聚类
+    // 1. clustering
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
     var NSum = [];
     var NCount = [];
@@ -113,8 +116,7 @@
     }
     context.putImageData(pixelData, 0, 0);
 
-    //2. 中心偏移
-    //根据本次聚类结果，计算每个类的新的中心
+    // 2. center shift: calculate new center.
     var newList = [];
     for (i=0; i<centerList.length; i++) {
       newList.push(
@@ -122,13 +124,13 @@
       );
     }
 
-    //3. 递归迭代
-    //计算新的中心跟老的中心的偏移量，跟阈值比较
+    // 3. calculate absolute residual sum.
     var shift = 0;
     for (i=0; i<centerList.length; i++) {
       shift += Math.abs(centerList[i]-newList[i]);
     }
 
+    // 4. compare absolute residual sum with threshold.
     if (shift >= threshold) {
       kmeansIterator(grayContext, context, newList, threshold);
     } else {
@@ -137,13 +139,13 @@
   }
 
   canvas.on('EM', function(e, data) {
-    //1. 绘制原始图像canvas
+    // 1. draw original canvas
     canvasOrigin.get(0).width = data.imgW;
     canvasOrigin.get(0).height = data.imgH;
     canvasOrigin.get(0).getContext('2d')
     .drawImage(img.get(0), 0, 0, data.imgW, data.imgH);
 
-    //2. 绘制灰度化图像canvas
+    // 2. draw gray scale canvas
     var imagedata = canvasOrigin.get(0).getContext('2d')
     .getImageData(0,0,data.imgW,data.imgH);
     for (var i=0; i<imagedata.data.length; i+=4) {
@@ -164,12 +166,12 @@
     var idx = 0;
     var curPoints = 0;
     var pointsNums = [];
-    for (i=0; i<data.N; i++) {        //尽量保证初始化后每个类里的点的个数相同，减少迭代次数
-      pointsNums.push(                //以三类为例分别取 0.5，1.5，2.5作为初始化三个中心点
+    for (i=0; i<data.N; i++) {
+      pointsNums.push(
         (i+0.5)*nPoints/data.N
       );
     }
-    //多个正态分布的中心
+    // mutiple gauss means
     var means = [];
     for (i=0; i<graySet.length; i++) {
       curPoints += graySet[i];
@@ -178,7 +180,7 @@
         idx++;
       }
     }
-    //多个正态分布的方差
+    // multiple gauss variances
     var variances = [];
     curPoints = 0;
     idx = 0;
@@ -195,13 +197,13 @@
         idx++;
       }
     }
-    //多个正太分布的权重
+    // initialize weight of each gauss distribution
     var p = [];
     for (i=0; i<data.N; i++) {
       p.push(1/data.N);
     }
 
-    //构造分布
+    // generate gauss clusters
     var clusters = [];
     for (i=0; i<data.N; i++) {
       clusters.push({
@@ -210,15 +212,15 @@
       });
     }
 
-    //初始化EM并调用迭代，直接在直方图上进行迭代0~255，而不是对整个图片像素作为对象进行迭代 graySet
+    // set threshold and iterate.
     var threshold = 1;
     likehood = undefined;
     emIterator(graySet, canvasGray.get(0).getContext('2d'), context, clusters, threshold);
   });
 
-  //EM迭代函数
+  // EM algorithm iterate function
   function emIterator(graySet, grayContext, context, clusters, threshold) {
-    //E-step       [聚类]
+    // E-step - cluster pixels to current clusters.
     var n_class = [];
     var max_pdf = 0;
 
@@ -243,8 +245,8 @@
       }
     }
 
-    //M-step       [重新计算样本中心，及方差]
-    //1 更新N_k  每个样本集的样本个数
+    //M-step - calculate new clusters
+    // 1. N_k - sum number of pixels each cluster have.
     var N_k = [];
     var N = 0;
     for (i=0; i<clusters.length; i++) {
@@ -255,7 +257,7 @@
       N += N_k[i];
     }
 
-    //2 更新u_k  每个样本集的均值
+    // 2. u_k  - mean value of each cluster.
     var u_k = [];
     for (i=0; i<clusters.length; i++) {
       mid = 0;
@@ -266,7 +268,7 @@
       u_k[i] = mid/N_k[i];
     }
 
-    //3 更新v_k  每个样本集的方差
+    // 3. v_k - variances of each cluster
     var v_k = [];
     for (i=0; i<clusters.length; i++) {
       mid = 0;
@@ -277,13 +279,13 @@
       v_k[i] = mid/N_k[i];
     }
 
-    //4 更新pi_k  每个样本集的权重
+    // 4. pi_k - update weight of every cluster
     for(i=0; i<clusters.length; i++) {
       clusters[i].p = N_k[i]/N;
       clusters[i].feature = gaussian(u_k[i], v_k[i]);
     }
 
-    //更新context
+    // 5. update canvas context
     var pixelData = grayContext.getImageData(0, 0, imgW, imgH);
     for (i=0; i<pixelData.data.length; i+=4) {
       var pixel = parseInt(u_k[n_class[pixelData.data[i]]]);
@@ -293,7 +295,7 @@
     }
     context.putImageData(pixelData, 0, 0);
 
-    //阈值决定是否继续迭代
+    // 6. calculate likehood and compare likehood with threshold.
     var new_likehood = 0;
     for (j=0; j<graySet.length; j++) {
       mid = 0;
@@ -303,7 +305,7 @@
       new_likehood += graySet[i]*Math.log10(mid);
     }
     if (likehood === undefined) {
-      likehood = new_likehood;  //global
+      likehood = new_likehood;
       emIterator(graySet, grayContext, context, clusters, threshold);
     } else {
       if (Math.abs(likehood-new_likehood) < threshold) {
@@ -315,7 +317,6 @@
     }
   }
 
-  //聚类触发函数
   function beginCluster() {
     var algo = algorithm.val();
     if (algo !== 'k-means' && algo !== 'EM') algo = 'k-means';
@@ -330,17 +331,14 @@
     canvas.trigger(algo, {imgH: imgH, imgW: imgW, N: N});
   }
 
-  //选择聚类算法时触发聚类
   algorithm.change(function(e) {
     beginCluster();
   });
 
-  //改变聚类类别时触发聚类
   n.change(function(e) {
     beginCluster();
   });
 
-  //加载萌妹子
   img.load(function(e) {
     beginCluster();
   });
